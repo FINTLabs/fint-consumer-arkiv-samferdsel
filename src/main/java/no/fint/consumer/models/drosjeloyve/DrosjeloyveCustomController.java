@@ -1,5 +1,6 @@
 package no.fint.consumer.models.drosjeloyve;
 
+import no.fint.consumer.exceptions.EventResponseException;
 import no.fint.consumer.utils.RestEndpoints;
 import no.fint.event.model.HeaderConstants;
 import no.fint.model.resource.arkiv.samferdsel.DrosjeloyveResource;
@@ -34,6 +35,14 @@ public class DrosjeloyveCustomController {
             @RequestBody DrosjeloyveResource body
     ) {
         return sakController.putDrosjeloyveByMappeId(ar + "/" + sekvensnummer, orgId, client, body);
+    }
+
+    //
+    // Exception handlers
+    //
+    @ExceptionHandler(EventResponseException.class)
+    public ResponseEntity handleEventResponseException(EventResponseException e) {
+        return ResponseEntity.status(e.getStatus()).body(e.getResponse());
     }
 
 }
