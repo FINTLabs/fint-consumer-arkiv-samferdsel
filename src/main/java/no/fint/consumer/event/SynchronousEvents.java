@@ -11,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Component
 public class SynchronousEvents {
 
-    private final ConcurrentMap<String, BlockingQueue<Event>> queues = new ConcurrentSkipListMap<>();
+    private ConcurrentMap<String, BlockingQueue<Event>> queues = new ConcurrentSkipListMap<>();
 
     public BlockingQueue<Event> register(Event event) {
         BlockingQueue<Event> queue = new LinkedBlockingQueue<>();
