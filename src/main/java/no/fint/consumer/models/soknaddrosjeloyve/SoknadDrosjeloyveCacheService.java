@@ -1,9 +1,11 @@
-package no.fint.consumer.models.drosjeloyve;
+package no.fint.consumer.models.soknaddrosjeloyve;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+
 import lombok.extern.slf4j.Slf4j;
+
 import no.fint.cache.CacheService;
 import no.fint.cache.model.CacheObject;
 import no.fint.consumer.config.Constants;
@@ -11,11 +13,8 @@ import no.fint.consumer.config.ConsumerProps;
 import no.fint.consumer.event.ConsumerEventUtil;
 import no.fint.event.model.Event;
 import no.fint.event.model.ResponseStatus;
-import no.fint.model.arkiv.samferdsel.Drosjeloyve;
-import no.fint.model.arkiv.samferdsel.SamferdselActions;
-import no.fint.model.felles.kompleksedatatyper.Identifikator;
-import no.fint.model.resource.arkiv.samferdsel.DrosjeloyveResource;
 import no.fint.relations.FintResourceCompatibility;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,12 +26,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import no.fint.model.arkiv.samferdsel.SoknadDrosjeloyve;
+import no.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResource;
+import no.fint.model.arkiv.samferdsel.SamferdselActions;
+import no.fint.model.felles.kompleksedatatyper.Identifikator;
+
 @Slf4j
 @Service
-@ConditionalOnProperty(name = "fint.consumer.cache.disabled.drosjeloyve", havingValue = "false", matchIfMissing = true)
-public class DrosjeloyveCacheService extends CacheService<DrosjeloyveResource> {
+@ConditionalOnProperty(name = "fint.consumer.cache.disabled.soknaddrosjeloyve", havingValue = "false", matchIfMissing = true)
+public class SoknadDrosjeloyveCacheService extends CacheService<SoknadDrosjeloyveResource> {
 
-    public static final String MODEL = Drosjeloyve.class.getSimpleName().toLowerCase();
+    public static final String MODEL = SoknadDrosjeloyve.class.getSimpleName().toLowerCase();
 
     @Value("${fint.consumer.compatibility.fintresource:true}")
     private boolean checkFintResourceCompatibility;
@@ -47,16 +51,16 @@ public class DrosjeloyveCacheService extends CacheService<DrosjeloyveResource> {
     private ConsumerProps props;
 
     @Autowired
-    private DrosjeloyveLinker linker;
+    private SoknadDrosjeloyveLinker linker;
 
-    private final JavaType javaType;
+    private JavaType javaType;
 
-    private final ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
-    public DrosjeloyveCacheService() {
-        super(MODEL, SamferdselActions.GET_ALL_DROSJELOYVE, SamferdselActions.UPDATE_DROSJELOYVE);
+    public SoknadDrosjeloyveCacheService() {
+        super(MODEL, SamferdselActions.GET_ALL_SOKNADDROSJELOYVE, SamferdselActions.UPDATE_SOKNADDROSJELOYVE);
         objectMapper = new ObjectMapper();
-        javaType = objectMapper.getTypeFactory().constructCollectionType(List.class, DrosjeloyveResource.class);
+        javaType = objectMapper.getTypeFactory().constructCollectionType(List.class, SoknadDrosjeloyveResource.class);
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     }
 
@@ -65,7 +69,7 @@ public class DrosjeloyveCacheService extends CacheService<DrosjeloyveResource> {
         props.getAssets().forEach(this::createCache);
     }
 
-    @Scheduled(initialDelayString = Constants.CACHE_INITIALDELAY_DROSJELOYVE, fixedRateString = Constants.CACHE_FIXEDRATE_DROSJELOYVE)
+    @Scheduled(initialDelayString = Constants.CACHE_INITIALDELAY_SOKNADDROSJELOYVE, fixedRateString = Constants.CACHE_FIXEDRATE_SOKNADDROSJELOYVE)
     public void populateCacheAll() {
         props.getAssets().forEach(this::populateCache);
     }
@@ -77,27 +81,27 @@ public class DrosjeloyveCacheService extends CacheService<DrosjeloyveResource> {
 
     @Override
     public void populateCache(String orgId) {
-		log.info("Populating Drosjeloyve cache for {}", orgId);
-        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.GET_ALL_DROSJELOYVE, Constants.CACHE_SERVICE);
+		log.info("Populating SoknadDrosjeloyve cache for {}", orgId);
+        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.GET_ALL_SOKNADDROSJELOYVE, Constants.CACHE_SERVICE);
         consumerEventUtil.send(event);
     }
 
 
-    public Optional<DrosjeloyveResource> getDrosjeloyveByMappeId(String orgId, String mappeId) {
+    public Optional<SoknadDrosjeloyveResource> getSoknadDrosjeloyveByMappeId(String orgId, String mappeId) {
         return getOne(orgId, mappeId.hashCode(),
             (resource) -> Optional
                 .ofNullable(resource)
-                .map(DrosjeloyveResource::getMappeId)
+                .map(SoknadDrosjeloyveResource::getMappeId)
                 .map(Identifikator::getIdentifikatorverdi)
                 .map(mappeId::equals)
                 .orElse(false));
     }
 
-    public Optional<DrosjeloyveResource> getDrosjeloyveBySystemId(String orgId, String systemId) {
+    public Optional<SoknadDrosjeloyveResource> getSoknadDrosjeloyveBySystemId(String orgId, String systemId) {
         return getOne(orgId, systemId.hashCode(),
             (resource) -> Optional
                 .ofNullable(resource)
-                .map(DrosjeloyveResource::getSystemId)
+                .map(SoknadDrosjeloyveResource::getSystemId)
                 .map(Identifikator::getIdentifikatorverdi)
                 .map(systemId::equals)
                 .orElse(false));
@@ -106,17 +110,17 @@ public class DrosjeloyveCacheService extends CacheService<DrosjeloyveResource> {
 
 	@Override
     public void onAction(Event event) {
-        List<DrosjeloyveResource> data;
+        List<SoknadDrosjeloyveResource> data;
         if (checkFintResourceCompatibility && fintResourceCompatibility.isFintResourceData(event.getData())) {
-            log.info("Compatibility: Converting FintResource<DrosjeloyveResource> to DrosjeloyveResource ...");
-            data = fintResourceCompatibility.convertResourceData(event.getData(), DrosjeloyveResource.class);
+            log.info("Compatibility: Converting FintResource<SoknadDrosjeloyveResource> to SoknadDrosjeloyveResource ...");
+            data = fintResourceCompatibility.convertResourceData(event.getData(), SoknadDrosjeloyveResource.class);
         } else {
             data = objectMapper.convertValue(event.getData(), javaType);
         }
         data.forEach(linker::mapLinks);
-        if (SamferdselActions.valueOf(event.getAction()) == SamferdselActions.UPDATE_DROSJELOYVE) {
+        if (SamferdselActions.valueOf(event.getAction()) == SamferdselActions.UPDATE_SOKNADDROSJELOYVE) {
             if (event.getResponseStatus() == ResponseStatus.ACCEPTED || event.getResponseStatus() == ResponseStatus.CONFLICT) {
-                List<CacheObject<DrosjeloyveResource>> cacheObjects = data
+                List<CacheObject<SoknadDrosjeloyveResource>> cacheObjects = data
                     .stream()
                     .map(i -> new CacheObject<>(i, linker.hashCodes(i)))
                     .collect(Collectors.toList());
@@ -126,7 +130,7 @@ public class DrosjeloyveCacheService extends CacheService<DrosjeloyveResource> {
                 log.debug("Ignoring payload for {} with response status {}", event.getOrgId(), event.getResponseStatus());
             }
         } else {
-            List<CacheObject<DrosjeloyveResource>> cacheObjects = data
+            List<CacheObject<SoknadDrosjeloyveResource>> cacheObjects = data
                     .stream()
                     .map(i -> new CacheObject<>(i, linker.hashCodes(i)))
                     .collect(Collectors.toList());

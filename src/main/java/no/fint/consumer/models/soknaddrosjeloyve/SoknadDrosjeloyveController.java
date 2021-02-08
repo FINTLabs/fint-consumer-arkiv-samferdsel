@@ -1,12 +1,15 @@
-package no.fint.consumer.models.drosjeloyve;
+package no.fint.consumer.models.soknaddrosjeloyve;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
 import no.fint.audit.FintAuditService;
-import no.fint.cache.exceptions.CacheNotFoundException;
+
+import no.fint.cache.exceptions.*;
 import no.fint.consumer.config.Constants;
 import no.fint.consumer.config.ConsumerProps;
 import no.fint.consumer.event.ConsumerEventUtil;
@@ -15,15 +18,11 @@ import no.fint.consumer.exceptions.*;
 import no.fint.consumer.status.StatusCache;
 import no.fint.consumer.utils.EventResponses;
 import no.fint.consumer.utils.RestEndpoints;
-import no.fint.event.model.Event;
-import no.fint.event.model.HeaderConstants;
-import no.fint.event.model.Operation;
-import no.fint.event.model.Status;
-import no.fint.model.arkiv.samferdsel.SamferdselActions;
-import no.fint.model.resource.arkiv.samferdsel.DrosjeloyveResource;
-import no.fint.model.resource.arkiv.samferdsel.DrosjeloyveResources;
+
+import no.fint.event.model.*;
+
 import no.fint.relations.FintRelationsMediaType;
-import org.apache.commons.lang3.StringUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,29 +31,34 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
 import java.net.UnknownHostException;
+import java.net.URI;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import no.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResource;
+import no.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResources;
+import no.fint.model.arkiv.samferdsel.SamferdselActions;
+
 @Slf4j
-@Api(tags = {"Drosjeloyve"})
+@Api(tags = {"SoknadDrosjeloyve"})
 @CrossOrigin
 @RestController
-@RequestMapping(name = "Drosjeloyve", value = RestEndpoints.DROSJELOYVE, produces = {FintRelationsMediaType.APPLICATION_HAL_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE})
-public class DrosjeloyveController {
+@RequestMapping(name = "SoknadDrosjeloyve", value = RestEndpoints.SOKNADDROSJELOYVE, produces = {FintRelationsMediaType.APPLICATION_HAL_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE})
+public class SoknadDrosjeloyveController {
 
     @Autowired(required = false)
-    private DrosjeloyveCacheService cacheService;
+    private SoknadDrosjeloyveCacheService cacheService;
 
     @Autowired
     private FintAuditService fintAuditService;
 
     @Autowired
-    private DrosjeloyveLinker linker;
+    private SoknadDrosjeloyveLinker linker;
 
     @Autowired
     private ConsumerProps props;
@@ -74,7 +78,7 @@ public class DrosjeloyveController {
     @GetMapping("/last-updated")
     public Map<String, String> getLastUpdated(@RequestHeader(name = HeaderConstants.ORG_ID, required = false) String orgId) {
         if (cacheService == null) {
-            throw new CacheDisabledException("Drosjeloyve cache is disabled.");
+            throw new CacheDisabledException("SoknadDrosjeloyve cache is disabled.");
         }
         if (props.isOverrideOrgId() || orgId == null) {
             orgId = props.getDefaultOrgId();
@@ -86,7 +90,7 @@ public class DrosjeloyveController {
     @GetMapping("/cache/size")
     public ImmutableMap<String, Integer> getCacheSize(@RequestHeader(name = HeaderConstants.ORG_ID, required = false) String orgId) {
         if (cacheService == null) {
-            throw new CacheDisabledException("Drosjeloyve cache is disabled.");
+            throw new CacheDisabledException("SoknadDrosjeloyve cache is disabled.");
         }
         if (props.isOverrideOrgId() || orgId == null) {
             orgId = props.getDefaultOrgId();
@@ -95,7 +99,7 @@ public class DrosjeloyveController {
     }
 
     @GetMapping
-    public DrosjeloyveResources getDrosjeloyve(
+    public SoknadDrosjeloyveResources getSoknadDrosjeloyve(
             @RequestHeader(name = HeaderConstants.ORG_ID, required = false) String orgId,
             @RequestHeader(name = HeaderConstants.CLIENT, required = false) String client,
             @RequestParam(defaultValue = "0") long sinceTimeStamp,
@@ -103,7 +107,7 @@ public class DrosjeloyveController {
             @RequestParam(defaultValue = "0") int offset,
             HttpServletRequest request) {
         if (cacheService == null) {
-            throw new CacheDisabledException("Drosjeloyve cache is disabled.");
+            throw new CacheDisabledException("SoknadDrosjeloyve cache is disabled.");
         }
         if (props.isOverrideOrgId() || orgId == null) {
             orgId = props.getDefaultOrgId();
@@ -113,7 +117,7 @@ public class DrosjeloyveController {
         }
         log.debug("OrgId: {}, Client: {}", orgId, client);
 
-        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.GET_ALL_DROSJELOYVE, client);
+        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.GET_ALL_SOKNADDROSJELOYVE, client);
         event.setOperation(Operation.READ);
         if (StringUtils.isNotBlank(request.getQueryString())) {
             event.setQuery("?" + request.getQueryString());
@@ -121,7 +125,7 @@ public class DrosjeloyveController {
         fintAuditService.audit(event);
         fintAuditService.audit(event, Status.CACHE);
 
-        Stream<DrosjeloyveResource> resources;
+        Stream<SoknadDrosjeloyveResource> resources;
         if (size > 0 && offset >= 0 && sinceTimeStamp > 0) {
             resources = cacheService.streamSliceSince(orgId, sinceTimeStamp, offset, size);
         } else if (size > 0 && offset >= 0) {
@@ -139,7 +143,7 @@ public class DrosjeloyveController {
 
 
     @GetMapping("/mappeid/{id:.+}")
-    public DrosjeloyveResource getDrosjeloyveByMappeId(
+    public SoknadDrosjeloyveResource getSoknadDrosjeloyveByMappeId(
             @PathVariable String id,
             @RequestHeader(name = HeaderConstants.ORG_ID, required = false) String orgId,
             @RequestHeader(name = HeaderConstants.CLIENT, required = false) String client) throws InterruptedException {
@@ -151,7 +155,7 @@ public class DrosjeloyveController {
         }
         log.debug("mappeId: {}, OrgId: {}, Client: {}", id, orgId, client);
 
-        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.GET_DROSJELOYVE, client);
+        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.GET_SOKNADDROSJELOYVE, client);
         event.setOperation(Operation.READ);
         event.setQuery("mappeId/" + id);
 
@@ -159,11 +163,11 @@ public class DrosjeloyveController {
             fintAuditService.audit(event);
             fintAuditService.audit(event, Status.CACHE);
 
-            Optional<DrosjeloyveResource> drosjeloyve = cacheService.getDrosjeloyveByMappeId(orgId, id);
+            Optional<SoknadDrosjeloyveResource> soknaddrosjeloyve = cacheService.getSoknadDrosjeloyveByMappeId(orgId, id);
 
             fintAuditService.audit(event, Status.CACHE_RESPONSE, Status.SENT_TO_CLIENT);
 
-            return drosjeloyve.map(linker::toResource).orElseThrow(() -> new EntityNotFoundException(id));
+            return soknaddrosjeloyve.map(linker::toResource).orElseThrow(() -> new EntityNotFoundException(id));
 
         } else {
             BlockingQueue<Event> queue = synchronousEvents.register(event);
@@ -174,16 +178,16 @@ public class DrosjeloyveController {
             if (response.getData() == null ||
                     response.getData().isEmpty()) throw new EntityNotFoundException(id);
 
-            DrosjeloyveResource drosjeloyve = objectMapper.convertValue(response.getData().get(0), DrosjeloyveResource.class);
+            SoknadDrosjeloyveResource soknaddrosjeloyve = objectMapper.convertValue(response.getData().get(0), SoknadDrosjeloyveResource.class);
 
             fintAuditService.audit(response, Status.SENT_TO_CLIENT);
 
-            return linker.toResource(drosjeloyve);
+            return linker.toResource(soknaddrosjeloyve);
         }    
     }
 
     @GetMapping("/systemid/{id:.+}")
-    public DrosjeloyveResource getDrosjeloyveBySystemId(
+    public SoknadDrosjeloyveResource getSoknadDrosjeloyveBySystemId(
             @PathVariable String id,
             @RequestHeader(name = HeaderConstants.ORG_ID, required = false) String orgId,
             @RequestHeader(name = HeaderConstants.CLIENT, required = false) String client) throws InterruptedException {
@@ -195,7 +199,7 @@ public class DrosjeloyveController {
         }
         log.debug("systemId: {}, OrgId: {}, Client: {}", id, orgId, client);
 
-        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.GET_DROSJELOYVE, client);
+        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.GET_SOKNADDROSJELOYVE, client);
         event.setOperation(Operation.READ);
         event.setQuery("systemId/" + id);
 
@@ -203,11 +207,11 @@ public class DrosjeloyveController {
             fintAuditService.audit(event);
             fintAuditService.audit(event, Status.CACHE);
 
-            Optional<DrosjeloyveResource> drosjeloyve = cacheService.getDrosjeloyveBySystemId(orgId, id);
+            Optional<SoknadDrosjeloyveResource> soknaddrosjeloyve = cacheService.getSoknadDrosjeloyveBySystemId(orgId, id);
 
             fintAuditService.audit(event, Status.CACHE_RESPONSE, Status.SENT_TO_CLIENT);
 
-            return drosjeloyve.map(linker::toResource).orElseThrow(() -> new EntityNotFoundException(id));
+            return soknaddrosjeloyve.map(linker::toResource).orElseThrow(() -> new EntityNotFoundException(id));
 
         } else {
             BlockingQueue<Event> queue = synchronousEvents.register(event);
@@ -218,11 +222,11 @@ public class DrosjeloyveController {
             if (response.getData() == null ||
                     response.getData().isEmpty()) throw new EntityNotFoundException(id);
 
-            DrosjeloyveResource drosjeloyve = objectMapper.convertValue(response.getData().get(0), DrosjeloyveResource.class);
+            SoknadDrosjeloyveResource soknaddrosjeloyve = objectMapper.convertValue(response.getData().get(0), SoknadDrosjeloyveResource.class);
 
             fintAuditService.audit(response, Status.SENT_TO_CLIENT);
 
-            return linker.toResource(drosjeloyve);
+            return linker.toResource(soknaddrosjeloyve);
         }    
     }
 
@@ -235,20 +239,20 @@ public class DrosjeloyveController {
             @RequestHeader(HeaderConstants.ORG_ID) String orgId,
             @RequestHeader(HeaderConstants.CLIENT) String client) {
         log.debug("/status/{} for {} from {}", id, orgId, client);
-        return statusCache.handleStatusRequest(id, orgId, linker, DrosjeloyveResource.class);
+        return statusCache.handleStatusRequest(id, orgId, linker, SoknadDrosjeloyveResource.class);
     }
 
     @PostMapping
-    public ResponseEntity postDrosjeloyve(
+    public ResponseEntity postSoknadDrosjeloyve(
             @RequestHeader(name = HeaderConstants.ORG_ID) String orgId,
             @RequestHeader(name = HeaderConstants.CLIENT) String client,
-            @RequestBody DrosjeloyveResource body,
+            @RequestBody SoknadDrosjeloyveResource body,
             @RequestParam(name = "validate", required = false) boolean validate
     ) {
-        log.debug("postDrosjeloyve, Validate: {}, OrgId: {}, Client: {}", validate, orgId, client);
+        log.debug("postSoknadDrosjeloyve, Validate: {}, OrgId: {}, Client: {}", validate, orgId, client);
         log.trace("Body: {}", body);
         linker.mapLinks(body);
-        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.UPDATE_DROSJELOYVE, client);
+        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.UPDATE_SOKNADDROSJELOYVE, client);
         event.addObject(objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).convertValue(body, Map.class));
         event.setOperation(validate ? Operation.VALIDATE : Operation.CREATE);
         consumerEventUtil.send(event);
@@ -261,16 +265,16 @@ public class DrosjeloyveController {
 
   
     @PutMapping("/mappeid/{id:.+}")
-    public ResponseEntity putDrosjeloyveByMappeId(
+    public ResponseEntity putSoknadDrosjeloyveByMappeId(
             @PathVariable String id,
             @RequestHeader(name = HeaderConstants.ORG_ID) String orgId,
             @RequestHeader(name = HeaderConstants.CLIENT) String client,
-            @RequestBody DrosjeloyveResource body
+            @RequestBody SoknadDrosjeloyveResource body
     ) {
-        log.debug("putDrosjeloyveByMappeId {}, OrgId: {}, Client: {}", id, orgId, client);
+        log.debug("putSoknadDrosjeloyveByMappeId {}, OrgId: {}, Client: {}", id, orgId, client);
         log.trace("Body: {}", body);
         linker.mapLinks(body);
-        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.UPDATE_DROSJELOYVE, client);
+        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.UPDATE_SOKNADDROSJELOYVE, client);
         event.setQuery("mappeid/" + id);
         event.addObject(objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).convertValue(body, Map.class));
         event.setOperation(Operation.UPDATE);
@@ -285,16 +289,16 @@ public class DrosjeloyveController {
     }
   
     @PutMapping("/systemid/{id:.+}")
-    public ResponseEntity putDrosjeloyveBySystemId(
+    public ResponseEntity putSoknadDrosjeloyveBySystemId(
             @PathVariable String id,
             @RequestHeader(name = HeaderConstants.ORG_ID) String orgId,
             @RequestHeader(name = HeaderConstants.CLIENT) String client,
-            @RequestBody DrosjeloyveResource body
+            @RequestBody SoknadDrosjeloyveResource body
     ) {
-        log.debug("putDrosjeloyveBySystemId {}, OrgId: {}, Client: {}", id, orgId, client);
+        log.debug("putSoknadDrosjeloyveBySystemId {}, OrgId: {}, Client: {}", id, orgId, client);
         log.trace("Body: {}", body);
         linker.mapLinks(body);
-        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.UPDATE_DROSJELOYVE, client);
+        Event event = new Event(orgId, Constants.COMPONENT, SamferdselActions.UPDATE_SOKNADDROSJELOYVE, client);
         event.setQuery("systemid/" + id);
         event.addObject(objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).convertValue(body, Map.class));
         event.setOperation(Operation.UPDATE);

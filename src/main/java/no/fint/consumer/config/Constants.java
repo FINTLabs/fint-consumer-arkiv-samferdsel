@@ -8,8 +8,8 @@ public enum Constants {
     public static final String CACHE_SERVICE = "CACHE_SERVICE";
 
     
-    public static final String CACHE_INITIALDELAY_DROSJELOYVE = "${fint.consumer.cache.initialDelay.drosjeloyve:900000}";
-    public static final String CACHE_FIXEDRATE_DROSJELOYVE = "${fint.consumer.cache.fixedRate.drosjeloyve:900000}";
+    public static final String CACHE_INITIALDELAY_SOKNADDROSJELOYVE = "${fint.consumer.cache.initialDelay.soknaddrosjeloyve:900000}";
+    public static final String CACHE_FIXEDRATE_SOKNADDROSJELOYVE = "${fint.consumer.cache.fixedRate.soknaddrosjeloyve:900000}";
     
 
 }
