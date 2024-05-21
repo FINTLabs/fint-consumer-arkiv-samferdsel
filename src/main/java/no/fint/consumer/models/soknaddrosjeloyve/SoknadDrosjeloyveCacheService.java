@@ -117,7 +117,10 @@ public class SoknadDrosjeloyveCacheService extends CacheService<SoknadDrosjeloyv
         } else {
             data = objectMapper.convertValue(event.getData(), javaType);
         }
-        data.forEach(linker::mapLinks);
+        data.forEach(resource -> {
+            linker.mapLinks(resource);
+            linker.resetSelfLinks(resource);
+        });
         if (SamferdselActions.valueOf(event.getAction()) == SamferdselActions.UPDATE_SOKNADDROSJELOYVE) {
             if (event.getResponseStatus() == ResponseStatus.ACCEPTED || event.getResponseStatus() == ResponseStatus.CONFLICT) {
                 List<CacheObject<SoknadDrosjeloyveResource>> cacheObjects = data
