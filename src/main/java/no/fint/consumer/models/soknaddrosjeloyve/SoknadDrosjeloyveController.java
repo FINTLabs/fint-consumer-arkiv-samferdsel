@@ -182,7 +182,7 @@ public class SoknadDrosjeloyveController {
 
             fintAuditService.audit(response, Status.SENT_TO_CLIENT);
 
-            return linker.toResource(soknaddrosjeloyve);
+            return linker.mapAndResetLinks(soknaddrosjeloyve);
         }    
     }
 
@@ -226,7 +226,7 @@ public class SoknadDrosjeloyveController {
 
             fintAuditService.audit(response, Status.SENT_TO_CLIENT);
 
-            return linker.toResource(soknaddrosjeloyve);
+            return linker.mapAndResetLinks(soknaddrosjeloyve);
         }    
     }
 
