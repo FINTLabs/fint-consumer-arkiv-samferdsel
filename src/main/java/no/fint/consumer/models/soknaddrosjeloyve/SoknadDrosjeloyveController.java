@@ -43,9 +43,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import no.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResource;
-import no.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResources;
-import no.fint.model.arkiv.samferdsel.SamferdselActions;
+import no.novari.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResource;
+import no.novari.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResources;
+import no.novari.fint.model.arkiv.samferdsel.SamferdselActions;
 
 @Slf4j
 @Api(tags = {"SoknadDrosjeloyve"})

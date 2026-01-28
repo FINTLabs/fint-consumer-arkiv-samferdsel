@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import no.fint.model.arkiv.samferdsel.SoknadDrosjeloyve;
-import no.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResource;
-import no.fint.model.arkiv.samferdsel.SamferdselActions;
-import no.fint.model.felles.kompleksedatatyper.Identifikator;
+import no.novari.fint.model.arkiv.samferdsel.SoknadDrosjeloyve;
+import no.novari.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResource;
+import no.novari.fint.model.arkiv.samferdsel.SamferdselActions;
+import no.novari.fint.model.felles.kompleksedatatyper.Identifikator;
 
 @Slf4j
 @Service

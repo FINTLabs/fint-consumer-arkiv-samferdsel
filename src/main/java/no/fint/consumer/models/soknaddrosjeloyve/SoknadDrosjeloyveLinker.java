@@ -1,7 +1,7 @@
 package no.fint.consumer.models.soknaddrosjeloyve;
 
-import no.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResource;
-import no.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResources;
+import no.novari.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResource;
+import no.novari.fint.model.resource.arkiv.samferdsel.SoknadDrosjeloyveResources;
 import no.fint.relations.FintLinker;
 import org.springframework.stereotype.Component;
 
